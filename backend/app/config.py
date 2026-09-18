@@ -9,8 +9,7 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
 
     database_url: str = (
-        "postgresql+asyncpg://postgres:postgres@localhost:5432/"
-        "lenny_assistant"
+        "postgresql+asyncpg://postgres:postgres@localhost:5432/lenny_assistant"
     )
 
     default_llm_provider: str = "ollama"
@@ -23,10 +22,10 @@ class Settings(BaseSettings):
 
     anthropic_api_key: str = ""
     anthropic_model: str = "claude-sonnet-4-6"
+
     agent_max_turns: int = 6
 
     embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
-
     retrieval_top_k: int = 3
     retrieval_threshold: float = 0.45
 
@@ -40,4 +39,21 @@ class Settings(BaseSettings):
 
 @lru_cache
 def get_settings() -> Settings:
-    return Settings()
+    settings = Settings()
+
+    # Render/PostgreSQL commonly provides a URL beginning with
+    # postgres:// or postgresql://. Our application uses asyncpg.
+    if settings.database_url.startswith("postgres://"):
+        settings.database_url = settings.database_url.replace(
+            "postgres://",
+            "postgresql+asyncpg://",
+            1,
+        )
+    elif settings.database_url.startswith("postgresql://"):
+        settings.database_url = settings.database_url.replace(
+            "postgresql://",
+            "postgresql+asyncpg://",
+            1,
+        )
+
+    return settings
